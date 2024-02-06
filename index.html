@@ -34,7 +34,7 @@
                         <a href="#" class="link">Inicio</a>
                     </li>
                     <li class="li_links">
-                        <a href="#" class="link" onclick='{() => offBurguer()}'>Sobre mi</a>
+                        <a href="#" class="link">Sobre mi</a>
                     </li>
                     <li class="li_links">
                         <a href="#" class="link">Productos</a>
@@ -44,12 +44,16 @@
         </header>
     </body>
 <script>
-  const offBurguer = () => {
-  // Obtén una referencia al checkbox
-  const miCheckbox = document.getElementById('menu_hamburguesa');
+  document.addEventListener('DOMContentLoaded', function () {
+  const links = document.querySelectorAll('.link');
 
-  // Desmarca el checkbox
-  miCheckbox.checked = false;
-}
+  links.forEach(link => {
+    link.addEventListener('click', function () {
+      const miCheckbox = document.getElementById('menu_hamburguesa');
+      miCheckbox.checked = false;
+    });
+  });
+});
+
 </script>
 </html>
