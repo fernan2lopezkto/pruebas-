@@ -1,63 +1,20 @@
+
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css" />
-    <title>intentando juego</title>
-  </head>
-  <body>
-    <header class="header">
-      <nav class="navbar">
-        <h1 class="logo">Logo</h1>
-
-        <label class="labe_hamburguesa" for="menu_hamburguesa">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="35"
-            height="35"
-            fill="currentColor"
-            class="list_icon"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"
-            />
-          </svg>
-        </label>
-
-        <input
-          class="menu_hamburguesa"
-          type="checkbox"
-          name=""
-          id="menu_hamburguesa"
-        />
-
-        <ul class="ul_links">
-          <li class="li_links">
-            <a href="#" class="link">Inicio</a>
-          </li>
-          <li class="li_links">
-            <a href="#" class="link" onclick="{() => offBurguer()}">Sobre mi</a>
-          </li>
-          <li class="li_links">
-            <a href="#" class="link">Productos</a>
-          </li>
-        </ul>
-      </nav>
-    </header>
-
-    <script src="https://cdn.jsdelivr.net/npm/phaser@v3.80.1/dist/phaser.js"></script>
-    <script src="index.js" type="module"></script>
-  </body>
-  <script>
-    const offBurguer = () => {
-      // Obtén una referencia al checkbox
-      const miCheckbox = document.getElementById("menu_hamburguesa");
-
-      // Desmarca el checkbox
-      miCheckbox.checked = false;
-    };
-  </script>
-</html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descargar Reels de Instagram</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Descargar Reels de Instagram</h1>
+    <p>Pega el enlace del reel de Instagram y descárgalo fácilmente.</p>
+    <input id="reelUrl" type="text" placeholder="Pega el enlace del reel aquí">
+    <button onclick="downloadReel()">Descargar</button>
+    <p class="footer">Hecho con ❤️ para facilitarte la vida.</p>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html
