@@ -13,7 +13,7 @@ async function downloadReel() {
     const response = await fetch('https://social-media-video-downloader.p.rapidapi.com/smvd/get/instagram', {
       method: 'GET',
       headers: {
-        'X-RapidAPI-Key': 'TU_API_KEY', // Reemplaza con tu clave API
+        'X-RapidAPI-Key': 'd6eefda435msh8ae60d04d6b9b22p172e56jsn5a84a74c03bd', // Reemplaza con tu clave API
         'X-RapidAPI-Host': 'social-media-video-downloader.p.rapidapi.com'
       },
       params: {
