@@ -68,9 +68,9 @@
 
         const data = await response.json();
         if (data.links.length > 0) {
-          thumbnail.src = data.links[1]?.renderLink || data.links[0]?.renderLink;
+          thumbnail.src = data.links[1]?.renderLink || data.links[1]?.renderLink;
           videoQuality.textContent = data.links[1]?.quality || 'Desconocida';
-          downloadLink.href = data.links[1]?.link || data.links[0]?.link;
+          downloadLink.href = data.links[1]?.link || data.links[1]?.link;
           
           videoContainer.classList.remove('d-none');
         } else {
