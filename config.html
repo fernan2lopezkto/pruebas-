@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script> 
+    
+    <style>
+        @media (max-width: 600px) { body { padding-bottom: 5rem; } }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen pb-20 lg:pb-0 lg:pt-4">
+
+    <header class="p-4 bg-base-100 shadow-md">
+        <div class="container mx-auto max-w-4xl flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary">Configuración</h1>
+            <nav class="space-x-4">
+                <a href="index.html" class="btn btn-ghost btn-sm">Home</a>
+                <a href="history.html" class="btn btn-ghost btn-sm">Historial</a>
+                <a href="config.html" class="btn btn-primary btn-sm">Config</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container mx-auto p-4 max-w-4xl">
+        
+        <div class="card bg-base-100 shadow-xl p-6 mt-4">
+            <h2 class="text-xl font-semibold mb-4">Ajustes de la Aplicación</h2>
+
+            <div class="form-control w-full mb-6">
+                <label class="label"><span class="label-text">Clave de API de YouTube</span></label>
+                <div class="join">
+                    <input type="text" id="api-key-input" placeholder="Introduce tu Clave de API" class="input input-bordered join-item w-full" aria-label="Clave de API de YouTube">
+                    <button onclick="saveConfig()" class="btn btn-primary join-item">Guardar</button>
+                </div>
+            </div>
+
+            <div class="form-control w-full mb-6">
+                <label class="label"><span class="label-text">Palabras Clave de Filtro (Separadas por coma)</span></label>
+                <div class="join">
+                    <input type="text" id="filter-keywords-input" placeholder="ej: terror, bruja, zombie" class="input input-bordered join-item w-full" aria-label="Palabras clave de filtro">
+                    <button onclick="saveConfig()" class="btn btn-primary join-item">Guardar</button>
+                </div>
+                <label class="label"><span class="label-text-alt">Los videos que contengan estas palabras en el título/descripción serán ocultados.</span></label>
+            </div>
+
+            <div id="config-message-container" class="mt-4"></div>
+        </div>
+        
+    </div>
+    
+    <div class="btm-nav lg:hidden z-50 bg-base-100 shadow-xl rounded-t-2xl">
+        <a href="index.html" class="p-3" aria-label="Ir a Home">
+            <i data-lucide="home" class="w-6 h-6"></i>
+        </a>
+        <a href="history.html" class="p-3" aria-label="Ir a Historial">
+            <i data-lucide="history" class="w-6 h-6"></i>
+        </a>
+        <a href="config.html" class="active p-3" aria-label="Ir a Configuración">
+            <i data-lucide="settings" class="w-6 h-6"></i>
+        </a>
+    </div>
+    
+    <script type="module">
+        // Importación de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Variables globales del entorno
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let currentUserId = null;
+        const CONFIG_DOC_PATH = `/artifacts/${appId}/users/`;
+
+        // --- Funciones Compartidas (Mínimas para este archivo) ---
+        
+        async function setupAuth() {
+            if (auth.currentUser) {
+                currentUserId = auth.currentUser.uid;
+            } else if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    currentUserId = auth.currentUser.uid;
+                } catch (error) {
+                    await signInAnonymously(auth);
+                    currentUserId = auth.currentUser.uid;
+                }
+            } else {
+                await signInAnonymously(auth);
+                currentUserId = auth.currentUser.uid;
+            }
+            return currentUserId;
+        }
+
+        // --- Lógica Específica de CONFIGURACIÓN ---
+        
+        function showConfigMessage(message, type = 'success') {
+            const container = document.getElementById('config-message-container');
+            const alertType = type === 'success' ? 'alert-success' : 'alert-error';
+            container.innerHTML = `<div class="alert ${alertType} shadow-sm"><span>${message}</span></div>`;
+            setTimeout(() => {container.innerHTML = '';}, 3000);
+        }
+
+        async function loadConfig() {
+            await setupAuth();
+            if (!currentUserId) {
+                showConfigMessage('❌ Error de autenticación. Recarga la página.', 'error');
+                return;
+            }
+            
+            const docRef = doc(db, CONFIG_DOC_PATH + currentUserId, "config");
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('api-key-input').value = data.apiKey || '';
+                    document.getElementById('filter-keywords-input').value = data.keywords || '';
+                }
+            } catch (e) {
+                console.error("Error loading config:", e);
+                showConfigMessage('Error al cargar la configuración.', 'error');
+            }
+        }
+
+        window.saveConfig = async () => {
+            await setupAuth();
+            if (!currentUserId) {
+                showConfigMessage('❌ Error de autenticación. No se pudo guardar.', 'error');
+                return;
+            }
+
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            const keywords = document.getElementById('filter-keywords-input').value.trim();
+
+            if (!apiKey) {
+                showConfigMessage('⚠️ La Clave de API es obligatoria.', 'warning');
+                return;
+            }
+
+            const docRef = doc(db, CONFIG_DOC_PATH + currentUserId, "config");
+            
+            try {
+                await setDoc(docRef, {
+                    apiKey: apiKey,
+                    keywords: keywords,
+                    updatedAt: Date.now()
+                });
+                showConfigMessage('✅ Configuración guardada exitosamente.', 'success');
+            } catch (e) {
+                console.error("Error saving config:", e);
+                showConfigMessage('❌ Error al guardar la configuración.', 'error');
+            }
+        };
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadConfig();
+        });
+    </script>
+</body>
+</html>
