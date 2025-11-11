@@ -1,28 +1,47 @@
-/* Estilos existentes */
-body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+/* --- Arreglo para el clic en móviles --- */
+
+/* 1. El 'wrapper' (contenedor) debe tener posición relativa */
+.video-player-wrapper {
+    position: relative;
+    /* Mantenemos el aspecto 16:9 para el video */
+    padding-top: 56.25%; /* 16:9 Aspect Ratio (divide 9 por 16) */
+    height: 0;
+    overflow: hidden;
+    background-color: #000; /* Fondo negro mientras carga */
 }
 
-.video-card img {
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-}
-
-/* --- NUEVOS ESTILOS --- */
-
-/* Contenedor del reproductor principal */
-.video-player-container {
+/* 2. El iframe y el overlay son absolutos DENTRO del wrapper */
+.video-player,
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 900px; /* Un ancho máximo para que no se haga gigante */
-    margin-left: auto;
-    margin-right: auto;
-    overflow: hidden; /* Para que el iframe no se desborde */
-}
-
-/* Estilos para el iframe que cargará JS */
-.video-player-container iframe {
-    width: 100%;
-    aspect-ratio: 16 / 9; /* Mantiene la proporción 16:9 */
+    height: 100%;
     border: none;
-    border-radius: 0.5rem; /* Hereda el redondeo del contenedor */
+}
+
+/* 3. El overlay es transparente y se pone ENCIMA de todo */
+.video-overlay {
+    z-index: 10;
+    cursor: pointer;
+    /* transparente */
+    background-color: rgba(0,0,0,0); 
+}
+
+/* -------------------------------------- */
+
+/* Clases de texto que ya no usamos (DaisyUI las maneja) */
+.id-text {
+    font-size: 12px;
+    color: #777;
+    opacity: 0.7;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 600px) {
+    /* El padding-bottom es necesario para que el contenido no quede oculto bajo el btm-nav */
+    body {
+        padding-bottom: 5rem; 
+    }
 }
