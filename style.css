@@ -1,0 +1,28 @@
+/* Estilos existentes */
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.video-card img {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+/* --- NUEVOS ESTILOS --- */
+
+/* Contenedor del reproductor principal */
+.video-player-container {
+    width: 100%;
+    max-width: 900px; /* Un ancho máximo para que no se haga gigante */
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden; /* Para que el iframe no se desborde */
+}
+
+/* Estilos para el iframe que cargará JS */
+.video-player-container iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* Mantiene la proporción 16:9 */
+    border: none;
+    border-radius: 0.5rem; /* Hereda el redondeo del contenedor */
+}

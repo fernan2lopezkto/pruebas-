@@ -1,169 +1,141 @@
-// ==========================================================
-// 1. LÓGICA DE NAVEGACIÓN (SPA)
-// ==========================================================
-
-function navigateTo(viewId) {
-    // 1. Ocultar todas las vistas
-    const allViews = document.querySelectorAll('[data-view]');
-    allViews.forEach(view => {
-        // Tailwind/DaisyUI clase 'hidden'
-        view.classList.add('hidden');
-    });
-
-    // 2. Mostrar la vista solicitada
-    const targetView = document.getElementById(viewId);
-    if (targetView) {
-        targetView.classList.remove('hidden');
-        console.log(`Navegando a la vista: ${viewId}`);
-        
-        // TIP: Si es el historial, lo renderizamos de nuevo para ver los cambios
-        if (viewId === 'history-view') {
-            renderHistoryView();
-        }
+// Base de datos de videos (la dejamos como está)
+const videos = [
+    {
+        id: "jfKfPfyJRdk",
+        titulo: "El Evangelio",
+        canal: "Paul Washer",
+        categoria: "reflexion"
+    },
+    {
+        id: "iHG0v91Dtpw",
+        titulo: "Gracia a Vosotros",
+        canal: "John MacArthur",
+        categoria: "estudio"
+    },
+    // ... (resto de tus videos)
+    {
+        id: "2e21WW74M94",
+        titulo: "Nadie Te Ama Como Yo",
+        canal: "Jesús Adrián Romero",
+        categoria: "musica"
     }
-    
-    // 3. Actualizar la URL para usar el botón de "Atrás"
-    history.pushState(null, '', `#${viewId}`);
-}
+];
 
+// --- SELECCIÓN DE ELEMENTOS ---
+const botonesFiltro = document.querySelectorAll('.filtros-container .btn');
+const videosContainer = document.querySelector('.videos-container');
+// ¡NUEVO! El contenedor del reproductor principal
+const videoPlayer = document.getElementById('video-player');
 
-// Inicialización: Carga la vista según la URL o por defecto
-document.addEventListener('DOMContentLoaded', () => {
-    const hash = window.location.hash.substring(1); 
-    navigateTo(hash || 'search-view');
-});
-
-
-// ==========================================================
-// 2. LÓGICA DE LOCALSTORAGE (HISTORIAL CON PUNTUACIÓN)
-// ==========================================================
-
-function getHistory() {
-    try {
-        const historyJson = localStorage.getItem('videoHistory');
-        // Inicializa viewCount si no existe (para asegurar el conteo)
-        return historyJson ? JSON.parse(historyJson).map(v => ({
-            ...v,
-            viewCount: v.viewCount || 0
-        })) : [];
-    } catch (e) {
-        console.error("Error al obtener o parsear el historial:", e);
-        return []; 
-    }
-}
-
-function saveHistory(historyArray) {
-    localStorage.setItem('videoHistory', JSON.stringify(historyArray));
-}
+// --- FUNCIONES ---
 
 /**
- * Busca un video en el historial. Si existe, sube su puntuación (viewCount)
- * y actualiza la fecha. Si no existe, lo agrega con viewCount=1.
+ * Función para mostrar el video seleccionado en el reproductor principal
+ * @param {string} id - El ID del video de YouTube
  */
-function updateAndGetVideoInfo(videoId, videoTitle) {
-    const history = getHistory();
-    let videoInfo = history.find(v => v.videoId === videoId);
-
-    if (videoInfo) {
-        videoInfo.viewCount += 1; // ⬆️ Aumentar la puntuación
-        videoInfo.lastView = Date.now();
-    } else {
-        videoInfo = {
-            videoId: videoId,
-            title: videoTitle,
-            viewCount: 1,
-            lastView: Date.now()
-        };
-        history.push(videoInfo);
-    }
-
-    saveHistory(history);
-    return videoInfo;
-}
-
-// ==========================================================
-// 3. FLUJO DE REPRODUCCIÓN
-// ==========================================================
-
-function loadMainPlayer(videoId) {
-    const iframe = document.getElementById('main-video-player');
-    // TIP DE VALOR: Usar `https://www.youtube-nocookie.com/` mejora la privacidad y rendimiento.
-    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
-    iframe.setAttribute('src', embedUrl);
-}
-
-// SIMULACIÓN: Esta función reemplazaría la llamada real a la API de YouTube
-function fetchRelatedVideos(videoId) {
-    const container = document.getElementById('related-videos-container');
-    container.innerHTML = `
-        <div class="col-span-full alert alert-info">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>Simulación: Buscando videos relacionados para ${videoId} y aplicando tu filtro...</span>
-        </div>
-    `;
-    // Aquí iría tu lógica de la API de YouTube + el filtro de palabras clave.
-    // También la lógica para mezclar el historial (videos con alta puntuación) con los nuevos.
-}
-
-/**
- * Función principal que se llama al hacer clic en un video (simulando PLAY)
- */
-function handleVideoClick(videoId, videoTitle) {
-    console.log(`Reproduciendo: ${videoTitle} (${videoId})`);
-    
-    // 1. Guardar/Actualizar el historial y la puntuación
-    updateAndGetVideoInfo(videoId, videoTitle);
-
-    // 2. Cargar el video grande
-    loadMainPlayer(videoId);
-
-    // 3. Buscar y cargar videos relacionados
-    fetchRelatedVideos(videoId);
-
-    // 4. Navegar a la vista de Reproducción
-    navigateTo('player-view');
-}
-
-
-// ==========================================================
-// 4. RENDERIZADO DE VISTAS
-// ==========================================================
-
-function renderHistoryView() {
-    const history = getHistory();
-    const historyListContainer = document.getElementById('history-list');
-    historyListContainer.innerHTML = ''; // Limpiar la vista
-
-    // Ordenar el historial: Primero por PUNTUACIÓN (descendente) y luego por fecha (último visto)
-    history.sort((a, b) => {
-        if (b.viewCount !== a.viewCount) {
-            return b.viewCount - a.viewCount; // Más vistos primero
-        }
-        return b.lastView - a.lastView; // Más recientes después
-    });
-
-    if (history.length === 0) {
-        historyListContainer.innerHTML = '<p class="text-lg text-gray-500">Aún no hay videos en tu historial, ¡empezá a reproducir!</p>';
+function mostrarVideoPrincipal(id) {
+    if (!id) {
+        videoPlayer.innerHTML = `<p class="text-center p-10">No hay video para mostrar, bo.</p>`;
         return;
     }
 
-    // Renderizar cada elemento del historial
-    history.forEach(video => {
-        const historyItem = document.createElement('div');
-        historyItem.className = 'card card-side bg-base-100 shadow-xl p-4 cursor-pointer hover:bg-base-200';
-        historyItem.onclick = () => handleVideoClick(video.videoId, video.title);
-        
-        // Usamos DaisyUI para el layout del item
-        historyItem.innerHTML = `
-            <div class="flex-none w-24 h-16 bg-cover rounded-md" style="background-image: url('https://img.youtube.com/vi/${video.videoId}/default.jpg')"></div>
-            <div class="card-body p-0 ml-4 justify-center">
-                <p class="card-title text-sm font-semibold">${video.title}</p>
-                <div class="text-xs text-gray-500 flex items-center">
-                    <span class="badge badge-lg badge-success mr-2">Visto ${video.viewCount} ${video.viewCount === 1 ? 'vez' : 'veces'}</span>
-                    <span>Último: ${new Date(video.lastView).toLocaleDateString()}</span>
-                </div>
+    // Creamos el HTML del iframe
+    const videoHtml = `
+        <iframe 
+            src="https://www.youtube.com/embed/${id}?autoplay=1" 
+            title="YouTube video player" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+        </iframe>
+    `;
+    // Lo ponemos en el contenedor
+    videoPlayer.innerHTML = videoHtml;
+}
+
+/**
+ * Función para renderizar los videos en la grilla
+ * @param {Array} videosMostrados - El array de videos a mostrar
+ */
+function mostrarVideos(videosMostrados) {
+    // Limpiamos el contenedor
+    videosContainer.innerHTML = '';
+
+    if (videosMostrados.length === 0) {
+        videosContainer.innerHTML = '<p class="col-span-full text-center">No se encontraron videos de esta categoría.</p>';
+        // Limpiamos el player si no hay videos
+        mostrarVideoPrincipal(null); 
+        return;
+    }
+
+    // Creamos las tarjetas
+    videosMostrados.forEach(video => {
+        const videoCard = document.createElement('div');
+        // Usamos clases de DaisyUI que ya tenés
+        videoCard.className = 'card card-compact bg-base-100 shadow-xl transition-transform hover:scale-105 cursor-pointer';
+        // ¡Importante! Guardamos el ID en el data-attribute
+        videoCard.dataset.id = video.id;
+
+        videoCard.innerHTML = `
+            <figure>
+                <img src="https://img.youtube.com/vi/${video.id}/mqdefault.jpg" alt="${video.titulo}" />
+            </figure>
+            <div class="card-body">
+                <h2 class="card-title text-sm">${video.titulo}</h2>
+                <p class="text-xs">${video.canal}</p>
             </div>
         `;
-        historyListContainer.appendChild(historyItem);
+        videosContainer.appendChild(videoCard);
     });
+
+    // ¡NUEVO! Cargamos el primer video de la lista filtrada en el reproductor
+    mostrarVideoPrincipal(videosMostrados[0].id);
 }
+
+// --- EVENT LISTENERS ---
+
+// Listener para los botones de filtro
+botonesFiltro.forEach(boton => {
+    boton.addEventListener('click', () => {
+        // Marcamos el botón activo
+        botonesFiltro.forEach(btn => btn.classList.replace('btn-primary', 'btn-outline'));
+        boton.classList.replace('btn-outline', 'btn-primary');
+
+        const filtro = boton.dataset.filtro;
+
+        // Filtramos los videos
+        let videosFiltrados;
+        if (filtro === 'todos') {
+            videosFiltrados = videos;
+        } else {
+            videosFiltrados = videos.filter(video => video.categoria === filtro);
+        }
+
+        // Mostramos los videos filtrados
+        mostrarVideos(videosFiltrados);
+    });
+});
+
+
+// ¡NUEVO! Listener para los clicks en las tarjetas (Usando Delegación de Eventos)
+videosContainer.addEventListener('click', (e) => {
+    // Buscamos la tarjeta más cercana al elemento clickeado
+    const card = e.target.closest('.video-card');
+
+    // Si no se hizo click en una tarjeta (sino en el fondo), no hacemos nada
+    if (!card) return;
+
+    // Obtenemos el ID que guardamos en el data-attribute
+    const id = card.dataset.id;
+
+    // Mostramos el video
+    mostrarVideoPrincipal(id);
+
+    // Hacemos scroll suave para que el reproductor quede a la vista
+    videoPlayer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+
+// --- INICIALIZACIÓN ---
+// Mostramos todos los videos al cargar la página
+mostrarVideos(videos);
