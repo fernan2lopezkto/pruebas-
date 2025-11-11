@@ -1,277 +1,78 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="cupcake">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Buscador y Filtro</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <title>YT Filter Piloto - SPA Vanilla</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script> 
-    
-    <style>
-        .video-player-wrapper { position: relative; padding-top: 56.25%; height: 0; overflow: hidden; background-color: #000; }
-        .video-player, .video-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        .video-overlay { z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.5); transition: background-color 0.3s; }
-        .video-overlay:hover { background-color: rgba(0,0,0,0.3); }
-        .video-overlay svg { color: white; width: 3rem; height: 3rem; opacity: 0.9; }
-        .id-text { font-size: 12px; color: #777; opacity: 0.7; }
-        @media (max-width: 600px) { body { padding-bottom: 5rem; } }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
 </head>
-<body class="bg-base-200 min-h-screen pb-20 lg:pb-0 lg:pt-4">
+<body>
 
-    <header class="p-4 bg-base-100 shadow-md">
-        <div class="container mx-auto max-w-4xl flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-primary">Inicio</h1>
-            <nav class="space-x-4">
-                <a href="index.html" class="btn btn-primary btn-sm">Home</a>
-                <a href="history.html" class="btn btn-ghost btn-sm">Historial</a>
-                <a href="config.html" class="btn btn-ghost btn-sm">Config</a>
-            </nav>
+    <nav class="navbar bg-base-200 shadow-md">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl font-bold text-primary" onclick="navigateTo('search-view')">
+                YT Filter 🎬
+            </a>
         </div>
-    </header>
+        <div class="flex-none space-x-2">
+            <button class="btn btn-sm btn-ghost" onclick="navigateTo('search-view')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> Búsqueda
+            </button>
+            <button class="btn btn-sm btn-ghost" onclick="navigateTo('history-view')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Historial
+            </button>
+            <button class="btn btn-sm btn-ghost" onclick="navigateTo('config-view')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.527.27.765.344 1.066-.572z" /></svg> Configuración
+            </button>
+        </div>
+    </nav>
+    
+    <main class="container mx-auto p-4">
 
-    <div class="container mx-auto p-4 max-w-4xl">
-        
-        <div id="search-bar" class="join w-full mb-8 mt-4">
-            <input type="text" id="query" placeholder="Escribe tu búsqueda (ej: videos infantiles)" class="input input-bordered join-item w-full" aria-label="Término de búsqueda de YouTube">
-            <button onclick="searchVideos()" class="btn btn-primary join-item" aria-label="Botón de buscar videos">Buscar</button>
-        </div>
-        
-        <h2 class="text-xl font-semibold mb-4">✨ Videos Sugeridos (Aleatorios)</h2>
-        <div id="results" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="col-span-1 md:col-span-2 alert alert-info text-center">
-                <span>Cargando videos...</span>
+        <section id="search-view" data-view class="view-container">
+            <h2 class="text-2xl font-bold mb-4">🔍 Búsqueda de Contenido Filtrado</h2>
+            <div id="results-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card bg-base-100 shadow-xl cursor-pointer" onclick="handleVideoClick('dGlQ6F9c_J8', 'Video de Prueba')">
+                    <figure><img src="https://via.placeholder.com/320x180?text=Video+Simulado" alt="Simulación de video" /></figure>
+                    <div class="card-body p-4">
+                        <h3 class="card-title text-base">Hacé click para ver la reproducción (Simulación)</h3>
+                        <p class="text-sm text-gray-500">Haz clic para activar el flujo de reproducción.</p>
+                    </div>
+                </div>
+                </div>
+        </section>
+
+        <section id="player-view" data-view class="view-container hidden">
+            <h2 class="text-2xl font-bold mb-4">▶️ Reproduciendo Video</h2>
+            <div class="aspect-video bg-black rounded-lg mb-6">
+                <iframe id="main-video-player" width="100%" height="450" 
+                    title="Reproductor de video de YouTube" 
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen class="w-full h-full rounded-lg">
+                </iframe>
             </div>
-        </div>
-    </div>
-    
-    <div class="btm-nav lg:hidden z-50 bg-base-100 shadow-xl rounded-t-2xl">
-        <a href="index.html" class="active p-3" aria-label="Ir a Home">
-            <i data-lucide="home" class="w-6 h-6"></i>
-        </a>
-        <a href="history.html" class="p-3" aria-label="Ir a Historial">
-            <i data-lucide="history" class="w-6 h-6"></i>
-        </a>
-        <a href="config.html" class="p-3" aria-label="Ir a Configuración">
-            <i data-lucide="settings" class="w-6 h-6"></i>
-        </a>
-    </div>
-    
-    <script type="module">
-        // Importación de Firebase (Requerido para el entorno)
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, limit, where, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // Variables globales del entorno
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        let currentUserId = null;
-        let API_KEY = '';
-        const BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
-        const HISTORY_COLLECTION_PATH = `/artifacts/${appId}/users/`;
-        const CONFIG_DOC_PATH = `/artifacts/${appId}/users/`;
-
-        // --- Funciones Compartidas (Mínimas para este archivo) ---
-        
-        async function setupAuth() {
-            if (auth.currentUser) {
-                currentUserId = auth.currentUser.uid;
-            } else if (initialAuthToken) {
-                try {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    currentUserId = auth.currentUser.uid;
-                } catch (error) {
-                    await signInAnonymously(auth);
-                    currentUserId = auth.currentUser.uid;
-                }
-            } else {
-                await signInAnonymously(auth);
-                currentUserId = auth.currentUser.uid;
-            }
-            return currentUserId;
-        }
-
-        async function loadConfig() {
-            await setupAuth();
-            if (!currentUserId) return;
-            const docRef = doc(db, CONFIG_DOC_PATH + currentUserId, "config");
-            try {
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    API_KEY = docSnap.data().apiKey || '';
-                    return { apiKey: API_KEY, keywords: docSnap.data().keywords || '' };
-                }
-            } catch (e) {
-                console.error("Error loading config:", e);
-            }
-            return { apiKey: '', keywords: '' };
-        }
-
-        function createVideoElement(video) {
-            const videoId = video.id.videoId;
-            const videoTitle = video.snippet.title;
-            const videoElement = document.createElement('div');
-            videoElement.className = 'card card-compact bg-base-100 shadow-lg';
             
-            const embedUrl = `https://www.youtube.com/embed/${videoId}?modestbranding=1`;
-            
-            videoElement.innerHTML = `
-                <div class="video-player-wrapper">
-                    <iframe class="video-player" src="${embedUrl}" 
-                        frameborder="0" allowfullscreen 
-                        title="${videoTitle}" loading="lazy">
-                    </iframe>
-                    <button class="video-overlay flex flex-col justify-center items-center" 
-                            data-video-id="${videoId}" data-title="${videoTitle}"
-                            onclick="handleVideoClick(event, 'result')">
-                        <i data-lucide="play-circle" class="text-white"></i>
-                        <span class="text-sm font-bold text-white mt-1">Reproducir (+2 Importancia)</span>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title text-base">${videoTitle}</h3>
-                    <p class="text-sm">Canal: ${video.snippet.channelTitle}</p>
-                    <p class="id-text">ID: ${videoId}</p>
-                </div>
-            `;
-            return videoElement;
-        }
+            <h3 class="text-xl font-semibold mb-4 border-t pt-4">Videos Relacionados Filtrados</h3>
+            <div id="related-videos-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <p class="text-gray-500">Aquí irán los resultados de la API de relacionados + videos de tu historial.</p>
+            </div>
+        </section>
 
-        async function updateHistoryImportance(videoId, title, snippet, delta) {
-            await setupAuth();
-            if (!currentUserId) return;
+        <section id="history-view" data-view class="view-container hidden">
+            <h2 class="text-2xl font-bold mb-4">⏳ Historial de Videos (Por Importancia)</h2>
+            <div id="history-list" class="space-y-4">
+                <p class="text-gray-500">El historial cargado y ordenado por 'viewCount' aparecerá aquí.</p>
+            </div>
+        </section>
 
-            const docRef = doc(db, HISTORY_COLLECTION_PATH + currentUserId + "/history", videoId);
-            
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                 // Existe: Solo actualiza la importancia y el timestamp
-                await updateDoc(docRef, {
-                    importance: increment(delta),
-                    timestamp: Date.now(),
-                });
-            } else {
-                // No existe: Crea nuevo documento
-                const newVideo = {
-                    videoId: videoId,
-                    title: title,
-                    snippet: snippet,
-                    importance: delta,
-                    timestamp: Date.now(),
-                };
-                await setDoc(docRef, newVideo);
-            }
-        }
+        <section id="config-view" data-view class="view-container hidden">
+            <h2 class="text-2xl font-bold mb-4">⚙️ Gestión de Filtros</h2>
+            <p>Tu interfaz para añadir y eliminar palabras clave de filtro iría en esta sección.</p>
+        </section>
 
-        // --- Lógica Específica del HOME ---
+    </main>
 
-        window.handleVideoClick = async (event, type) => {
-            const button = event.currentTarget;
-            const videoId = button.getAttribute('data-video-id');
-            const videoTitle = button.getAttribute('data-title');
-            
-            // Obtener el snippet completo para guardar el historial
-            const card = button.closest('.card');
-            const videoData = card.videoData || {}; 
-            
-            // +2 puntos de importancia
-            await updateHistoryImportance(videoId, videoTitle, videoData.snippet, 2);
-            
-            // Redirigir a la página de reproducción con los datos necesarios
-            window.location.href = `play.html?v=${videoId}&q=${document.getElementById('query').value || ''}&title=${encodeURIComponent(videoTitle)}`;
-        };
-
-        async function fetchVideos(query, maxResults = 10) {
-            const config = await loadConfig();
-            if (!config.apiKey) {
-                document.getElementById('results').innerHTML = `<div class="col-span-1 md:col-span-2 alert alert-error"><span>❌ Por favor, configura tu Clave de API en la página de Configuración.</span></div>`;
-                return [];
-            }
-            
-            const params = new URLSearchParams({
-                part: 'snippet',
-                q: query,
-                key: config.apiKey,
-                type: 'video', 
-                maxResults: maxResults,
-                videoEmbeddable: 'true',
-                safeSearch: 'strict'
-            });
-
-            try {
-                const response = await fetch(`${BASE_URL}?${params.toString()}`);
-                const data = await response.json();
-
-                if (data.error) {
-                    document.getElementById('results').innerHTML = `<div class="col-span-1 md:col-span-2 alert alert-error"><span>Error de API: ${data.error.message}. Verifica tu clave y la cuota.</span></div>`;
-                    return [];
-                }
-                return data.items || [];
-            } catch (error) {
-                console.error('Fetch Error:', error);
-                document.getElementById('results').innerHTML = `<div class="col-span-1 md:col-span-2 alert alert-error"><span>Error de red al buscar videos.</span></div>`;
-                return [];
-            }
-        }
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        async function renderRandomVideos() {
-            document.getElementById('results').innerHTML = `<div class="col-span-1 md:col-span-2 alert alert-info text-center">
-                <span>Cargando videos sugeridos...</span>
-            </div>`;
-            
-            let videos = await fetchVideos('videos infantiles', 20); // Query genérico y más resultados para aleatorizar
-            
-            if (videos.length > 0) {
-                videos = shuffleArray(videos).slice(0, 10); // Selecciona 10 al azar
-                const resultsDiv = document.getElementById('results');
-                resultsDiv.innerHTML = '';
-                
-                videos.forEach(video => {
-                    if (video.id.videoId) {
-                         const element = createVideoElement(video);
-                         // Guardamos los datos del video en el elemento DOM para usarlos en el clic
-                         element.videoData = video; 
-                         resultsDiv.appendChild(element);
-                    }
-                });
-                lucide.createIcons(); // Vuelve a renderizar íconos
-            } else {
-                 document.getElementById('results').innerHTML = `<div class="col-span-1 md:col-span-2 alert alert-warning text-center">
-                    <span>No se pudieron cargar videos sugeridos. Verifica la configuración.</span>
-                </div>`;
-            }
-        }
-        
-        window.searchVideos = async () => {
-             const query = document.getElementById('query').value;
-             if (!query) return;
-
-             // Navega a play.html para mostrar los resultados de la búsqueda
-             window.location.href = `play.html?q=${encodeURIComponent(query)}`;
-        }
-        
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            renderRandomVideos();
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
