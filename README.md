@@ -2,7 +2,7 @@
 
 ¡Un proyecto (SPA) hecho con el objetivo de proteger a los más chicos!
 
-> **[⚡ ACCEDER A LA APLICACIÓN ⚡](https://fernan2lopezkto.github.io/youtuveFilterPiloto/)**
+> **[⚡ ACCEDER A LA APLICACIÓN ⚡](https://fernan2lopezkto.github.io/prueb/)**
 
 ---
 
