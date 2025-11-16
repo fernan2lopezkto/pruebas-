@@ -12,33 +12,17 @@ const BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
 // Tip de Performance: Cachear elementos del DOM
 // Guardamos las secciones principales en variables para no buscarlas todo el tiempo.
 let configSection, searchBar, historySection, resultsSection;
-let navButtons = {};
-let btmNavButtons = {};
 
 // =================================================================
 // 0. INICIALIZACIÓN Y CONFIGURACIÓN
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Cachear elementos principales
+    // Cachear secciones principales
     configSection = document.getElementById('config-container');
     searchBar = document.getElementById('search-bar');
     historySection = document.getElementById('history-section');
     resultsSection = document.getElementById('results');
-
-    // Cachear botones de nav (para el estado 'active')
-    navButtons = {
-        home: document.getElementById('nav-home'),
-        search: document.getElementById('nav-search'),
-        history: document.getElementById('nav-history'),
-        config: document.getElementById('nav-config')
-    };
-    btmNavButtons = {
-        home: document.getElementById('btm-nav-home'),
-        search: document.getElementById('btm-nav-search'),
-        history: document.getElementById('btm-nav-history'),
-        config: document.getElementById('btm-nav-config')
-    };
 
     // Cargar configuraciones
     loadConfig();
@@ -54,11 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // =================================================================
-// 1. NAVEGACIÓN POR PESTAÑAS (NUEVA FUNCIÓN)
+// 1. NAVEGACIÓN POR PESTAÑAS
 // =================================================================
 
 function showSection(sectionName) {
-    // 1. Ocultar todas las secciones
+    // 1. Ocultar todas las secciones (usando las variables cacheadas)
     configSection.classList.add('hidden');
     searchBar.classList.add('hidden');
     historySection.classList.add('hidden');
@@ -90,20 +74,30 @@ function showSection(sectionName) {
     updateActiveNav(sectionName);
 }
 
+// ---- ¡CORRECCIÓN AQUÍ! ----
+// Esta función ahora busca los botones por ID cada vez,
+// lo que es más robusto que el cacheo anterior.
 function updateActiveNav(activeSection) {
+    const navIds = ['home', 'search', 'history', 'config'];
+    
     // Resetear todos los botones de nav (desktop) - DaisyUI usa 'btn-active'
-    Object.values(navButtons).forEach(btn => btn?.classList.remove('btn-active'));
+    navIds.forEach(id => {
+        const btn = document.getElementById(`nav-${id}`);
+        if (btn) btn.classList.remove('btn-active');
+    });
     
     // Resetear todos los botones de btm-nav (mobile) - DaisyUI usa 'active'
-    Object.values(btmNavButtons).forEach(btn => btn?.classList.remove('active'));
+    navIds.forEach(id => {
+        const btn = document.getElementById(`btm-nav-${id}`);
+        if (btn) btn.classList.remove('active');
+    });
 
     // Activar los botones correspondientes
-    if (navButtons[activeSection]) {
-        navButtons[activeSection].classList.add('btn-active');
-    }
-    if (btmNavButtons[activeSection]) {
-        btmNavButtons[activeSection].classList.add('active');
-    }
+    const activeNavBtn = document.getElementById(`nav-${activeSection}`);
+    if (activeNavBtn) activeNavBtn.classList.add('btn-active');
+    
+    const activeBtmNavBtn = document.getElementById(`btm-nav-${activeSection}`);
+    if (activeBtmNavBtn) activeBtmNavBtn.classList.add('active');
 }
 
 
@@ -217,7 +211,7 @@ function renderHistory() {
 
 
 // =================================================================
-// 5. BÚSQUEDA Y RENDERIZADO (CON 1 MODIFICACIÓN)
+// 5. BÚSQUEDA Y RENDERIZADO (Sin cambios)
 // =================================================================
 
 function createVideoElement(video, type = 'result') {
