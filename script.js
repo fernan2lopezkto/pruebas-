@@ -3,7 +3,7 @@ const LS_API_KEY = 'youtube_api_key';
 const LS_KEYWORDS = 'filter_keywords';
 const LS_HISTORY = 'video_history';
 const LS_THEME = 'youtube_filter_theme'; 
-const MAX_HISTORY_ITEMS = 20; 
+const MAX_HISTORY_ITEMS = 50; 
 
 // Variables globales
 let API_KEY = '';
@@ -233,7 +233,7 @@ async function searchVideos() {
         q: query,
         key: API_KEY,
         type: 'video', 
-        maxResults: 20,
+        maxResults: 50,
         videoEmbeddable: 'true' 
     });
 
