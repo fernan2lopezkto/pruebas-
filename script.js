@@ -11,7 +11,9 @@ const BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
 
 // Elementos del contenedor fijo
 const fixedPlayerContainer = document.getElementById('fixed-player-container');
-const body = document.body; // Referencia al body
+const body = document.body;
+// Referencia a los botones de navegación inferior
+const btmNavButtons = document.querySelectorAll('.btm-nav button');
 
 // =================================================================
 // 0. INICIALIZACIÓN Y CONFIGURACIÓN
@@ -26,16 +28,39 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
 });
 
+// Función para actualizar la barra inferior (subrayado/activo)
+function updateBtmNav(activeId) {
+    btmNavButtons.forEach(button => {
+        // Remueve la clase 'active' de todos
+        button.classList.remove('active');
+        // Si el data-target coincide con el ID, lo activa
+        if (button.getAttribute('data-target') === activeId) {
+            button.classList.add('active');
+        }
+    });
+}
 
 // Función para navegar entre secciones (usada por el btm-nav)
 function hideSections(id) {
 
-    // LÓGICA DE OCULTAR REPRODUCTOR FIJO
+    // LÓGICA DE VISIBILIDAD DE PESTAÑA ACTIVA
+    updateBtmNav(id);
+
+    // LÓGICA DE OCULTAR REPRODUCTOR FIJO (MANTENIENDO EL AUDIO)
+    const isPlayerActive = fixedPlayerContainer.classList.contains('fixed-player-active');
+
+    // 🆕 SI NO ES LA PESTAÑA DE BÚSQUEDA: OCULTAMOS
     if (id !== 'search-bar') {
+        // Solo agregamos la clase de OCULTAR (transform: translateY(-100%))
         fixedPlayerContainer.classList.add('fixed-player-hidden');
-        fixedPlayerContainer.classList.remove('fixed-player-active');
-        fixedPlayerContainer.innerHTML = '';
-        body.classList.remove('body-push-down'); // Quitar clase si el reproductor se oculta
+        // Quitamos el padding del body
+        body.classList.remove('body-push-down'); 
+    } else {
+        // 🆕 SI ES LA PESTAÑA DE BÚSQUEDA: MOSTRAMOS si está ACTIVO
+        if (isPlayerActive) {
+            fixedPlayerContainer.classList.remove('fixed-player-hidden');
+            body.classList.add('body-push-down');
+        }
     }
 
     switch (id) {
@@ -54,7 +79,6 @@ function hideSections(id) {
             document.getElementById('history-section').style.display = 'none';
             document.getElementById('config-container').style.display = 'none';
             console.log('Navegando a Búsqueda');
-            // La clase 'body-push-down' se agrega cuando se reproduce un video
             break;
         case 'config-container':
             document.getElementById('config-toggle-cb').checked = true;
@@ -74,16 +98,19 @@ function hideSections(id) {
             console.log('Navegando a Historial');
             break;
         default:
+            // Comportamiento por defecto (Al cargar)
             document.getElementById('toogle').style.display = 'flex';
             document.getElementById('search-bar').style.display = 'flex';
             document.getElementById('results').style.display = 'flex';
             document.getElementById('history-section').style.display = 'block';
             document.getElementById('config-container').style.display = 'none';
             
+            // Aseguramos ocultamiento y limpieza al inicio
             fixedPlayerContainer.classList.add('fixed-player-hidden');
-            fixedPlayerContainer.classList.remove('fixed-player-active');
-            fixedPlayerContainer.innerHTML = '';
-            body.classList.remove('body-push-down'); // Quitar clase al cargar por defecto
+            body.classList.remove('body-push-down');
+            fixedPlayerContainer.classList.remove('fixed-player-active'); 
+            fixedPlayerContainer.innerHTML = ''; 
+            updateBtmNav('top');
             console.log(id);
             break;
     };
@@ -207,25 +234,37 @@ function playVideoInFixedPlayer(video) {
     const videoTitle = video.snippet.title;
     const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1`;
 
-    const newPlayerHTML = `
-        <div class="video-player-wrapper">
-            <iframe class="video-player"
-                src="${embedUrl}"
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen 
-                title="Reproductor Fijo: ${videoTitle}"
-                data-video-id="${videoId}">
-            </iframe>
-        </div>
-    `;
+    const existingIframe = fixedPlayerContainer.querySelector(`[data-video-id="${videoId}"]`);
+    
+    // Solo inyectamos el HTML si es un video nuevo o el contenedor estaba vacío
+    if (!existingIframe) {
+        const newPlayerHTML = `
+            <div class="video-player-wrapper">
+                <iframe class="video-player"
+                    src="${embedUrl}"
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen 
+                    title="Reproductor Fijo: ${videoTitle}"
+                    data-video-id="${videoId}">
+                </iframe>
+            </div>
+        `;
+        fixedPlayerContainer.innerHTML = newPlayerHTML;
+    } else {
+        // Si el video ya está cargado, nos aseguramos de que el iframe no se haya recargado
+        // y solo le mandamos un postMessage si el API estuviera disponible (aunque no es necesario para autoplay)
+        // Por simplicidad en vanilla JS, nos conformamos con que el iframe persista.
+    }
 
-    fixedPlayerContainer.innerHTML = newPlayerHTML;
+    // Marcamos el contenedor como activo y mostramos
     fixedPlayerContainer.classList.remove('fixed-player-hidden');
     fixedPlayerContainer.classList.add('fixed-player-active');
     
-    body.classList.add('body-push-down'); // Agrega la clase para empujar el contenido
-
+    // Y aseguramos el padding para empujar el contenido
+    body.classList.add('body-push-down'); 
+    fixedPlayerContainer.classList.add('fixed-player-active'); // Aseguramos que está activo
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -261,6 +300,8 @@ function createVideoElement(video, type = 'result') {
         if (type === 'result') {
             addToHistory(video);
         }
+        // Cuando hacemos clic, navegamos a la sección de búsqueda y reproducimos
+        hideSections('search-bar');
         playVideoInFixedPlayer(video);
     });
 
@@ -277,7 +318,8 @@ function showResultMessage(message, type = 'info') {
 }
 
 async function searchVideos() {
-    hideSections('search-bar')
+    // Aseguramos que la navegación a búsqueda active la pestaña correcta
+    hideSections('search-bar'); 
     const resultsDiv = document.getElementById('results');
     
     if (!API_KEY) {

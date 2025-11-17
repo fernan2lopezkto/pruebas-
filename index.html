@@ -150,19 +150,19 @@
         </div>
     </footer>
     <div class="btm-nav lg:hidden z-50 bg-base-100 shadow-xl rounded-t-2xl">
-        <button onclick="hideSections('top')" aria-label="Ir a Inicio" class="btn-ghost p-3">
+        <button onclick="hideSections('top')" data-target="top" aria-label="Ir a Inicio" class="p-3 active">
             <i data-lucide="home" class="w-6 h-6"></i>
         </button>
         
-        <button onclick="hideSections('search-bar')" aria-label="Ir a Búsqueda" class="active p-3">
+        <button onclick="hideSections('search-bar')" data-target="search-bar" aria-label="Ir a Búsqueda" class="p-3">
             <i data-lucide="search" class="w-6 h-6"></i>
         </button>
         
-        <button onclick="hideSections('history-section')" aria-label="Ir a Historial" class="p-3">
+        <button onclick="hideSections('history-section')" data-target="history-section" aria-label="Ir a Historial" class="p-3">
             <i data-lucide="history" class="w-6 h-6"></i>
         </button>
 
-        <button onclick="hideSections('config-container')" aria-label="Ir a Configuración" class="p-3">
+        <button onclick="hideSections('config-container')" data-target="config-container" aria-label="Ir a Configuración" class="p-3">
             <i data-lucide="settings" class="w-6 h-6"></i>
         </button>
     </div>
