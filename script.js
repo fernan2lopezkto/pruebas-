@@ -44,6 +44,7 @@ function hideSections(id) {
             console.log('Navegando a Búsqueda');
             break;
         case 'config-container':
+            document.getElementById('config-toggle-cb').checked = true;
             document.getElementById('toogle').style.display = 'none';
             document.getElementById('search-bar').style.display = 'none';
             document.getElementById('results').style.display = 'none';
