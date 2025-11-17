@@ -9,6 +9,10 @@ const MAX_HISTORY_ITEMS = 100;
 let API_KEY = '';
 const BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
 
+// Elementos del contenedor fijo
+const fixedPlayerContainer = document.getElementById('fixed-player-container');
+const body = document.body; // Referencia al body
+
 // =================================================================
 // 0. INICIALIZACIÓN Y CONFIGURACIÓN
 // =================================================================
@@ -26,11 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // Función para navegar entre secciones (usada por el btm-nav)
 function hideSections(id) {
 
+    // LÓGICA DE OCULTAR REPRODUCTOR FIJO
+    if (id !== 'search-bar') {
+        fixedPlayerContainer.classList.add('fixed-player-hidden');
+        fixedPlayerContainer.classList.remove('fixed-player-active');
+        fixedPlayerContainer.innerHTML = '';
+        body.classList.remove('body-push-down'); // Quitar clase si el reproductor se oculta
+    }
+
     switch (id) {
         case 'top':
             document.getElementById('toogle').style.display = 'flex';
             document.getElementById('search-bar').style.display = 'flex';
-            document.getElementById('results').style.display = 'none';
+            document.getElementById('results').style.display = 'none'; 
             document.getElementById('history-section').style.display = 'block';
             document.getElementById('config-container').style.display = 'none';
             console.log('Navegando a Inicio');
@@ -42,6 +54,7 @@ function hideSections(id) {
             document.getElementById('history-section').style.display = 'none';
             document.getElementById('config-container').style.display = 'none';
             console.log('Navegando a Búsqueda');
+            // La clase 'body-push-down' se agrega cuando se reproduce un video
             break;
         case 'config-container':
             document.getElementById('config-toggle-cb').checked = true;
@@ -66,29 +79,14 @@ function hideSections(id) {
             document.getElementById('results').style.display = 'flex';
             document.getElementById('history-section').style.display = 'block';
             document.getElementById('config-container').style.display = 'none';
+            
+            fixedPlayerContainer.classList.add('fixed-player-hidden');
+            fixedPlayerContainer.classList.remove('fixed-player-active');
+            fixedPlayerContainer.innerHTML = '';
+            body.classList.remove('body-push-down'); // Quitar clase al cargar por defecto
             console.log(id);
             break;
     };
-    // let element;
-    
-    // if (id === 'top') {
-    //     window.scrollTo({ top: 0, behavior: 'smooth' });
-    //     return;
-    // }
-
-    // element = document.getElementById(id);
-
-    // if (element) {
-    //     // Obtenemos la posición del elemento. Restamos para compensar el navbar fijo en escritorio.
-    //     const headerOffset = 64; 
-    //     const elementPosition = element.getBoundingClientRect().top;
-    //     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-    //     window.scrollTo({
-    //         top: offsetPosition,
-    //         behavior: 'smooth'
-    //     });
-    // }
 }
 
 
@@ -200,10 +198,37 @@ function renderHistory() {
     }
 }
 
+// =================================================================
+// 4. BÚSQUEDA Y RENDERIZADO (CON REPRODUCTOR FIJO)
+// =================================================================
 
-// =================================================================
-// 4. BÚSQUEDA Y RENDERIZADO (CON LA SOLUCIÓN DEL OVERLAY)
-// =================================================================
+function playVideoInFixedPlayer(video) {
+    const videoId = video.id.videoId;
+    const videoTitle = video.snippet.title;
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1`;
+
+    const newPlayerHTML = `
+        <div class="video-player-wrapper">
+            <iframe class="video-player"
+                src="${embedUrl}"
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen 
+                title="Reproductor Fijo: ${videoTitle}"
+                data-video-id="${videoId}">
+            </iframe>
+        </div>
+    `;
+
+    fixedPlayerContainer.innerHTML = newPlayerHTML;
+    fixedPlayerContainer.classList.remove('fixed-player-hidden');
+    fixedPlayerContainer.classList.add('fixed-player-active');
+    
+    body.classList.add('body-push-down'); // Agrega la clase para empujar el contenido
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 
 function createVideoElement(video, type = 'result') {
     const videoElement = document.createElement('div');
@@ -212,20 +237,14 @@ function createVideoElement(video, type = 'result') {
     const videoId = video.id.videoId;
     const videoTitle = video.snippet.title;
     
-    // URL simplificada para evitar errores de incrustación
-    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1`;
-    
     videoElement.innerHTML = `
         <div class="video-player-wrapper">
-            <iframe class="video-player"
-                src="${embedUrl}"
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen 
-                title="Reproductor: ${videoTitle}"
-                data-video-id="${videoId}">
-            </iframe>
-            <div class="video-overlay" aria-label="Reproducir video ${videoTitle}"></div>
+            <div class="video-overlay" aria-label="Reproducir video ${videoTitle}">
+                <i data-lucide="play-circle" class="w-12 h-12 text-white/90 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 hover:opacity-100 transition duration-200"></i>
+            </div>
+            <img src="https://img.youtube.com/vi/${videoId}/mqdefault.jpg" 
+                 alt="Miniatura de ${videoTitle}" 
+                 class="w-full h-full object-cover"/>
         </div>
         <div class="card-body">
             <h3 class="card-title text-base">${videoTitle}</h3>
@@ -234,14 +253,16 @@ function createVideoElement(video, type = 'result') {
         </div>
     `;
 
+    lucide.createIcons();
+    
     const overlay = videoElement.querySelector('.video-overlay');
     
     overlay.addEventListener('click', () => {
         if (type === 'result') {
             addToHistory(video);
         }
-        overlay.style.display = 'none';
-    }, { once: true });
+        playVideoInFixedPlayer(video);
+    });
 
     return videoElement;
 }
@@ -311,6 +332,8 @@ function renderSearchResults(videos) {
     let filteredCount = 0;
     let renderedCount = 0;
 
+    resultsDiv.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'gap-4'); 
+
     videos.forEach(video => {
         if (!video.id || !video.id.videoId) return;
 
@@ -329,7 +352,7 @@ function renderSearchResults(videos) {
         showResultMessage('No se encontraron videos que coincidieran con la búsqueda.', 'info');
     } else if (filteredCount > 0) {
         resultsDiv.insertAdjacentHTML('afterbegin', `
-            <div class="alert alert-success shadow-sm mb-4">
+            <div class="alert alert-success shadow-sm mb-4 col-span-full">
                 <span>ℹ️ Se han filtrado ${filteredCount} videos por tus palabras clave.</span>
             </div>
         `);
