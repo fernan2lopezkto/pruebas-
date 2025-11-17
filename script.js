@@ -3,7 +3,7 @@ const LS_API_KEY = 'youtube_api_key';
 const LS_KEYWORDS = 'filter_keywords';
 const LS_HISTORY = 'video_history';
 const LS_THEME = 'youtube_filter_theme'; 
-const MAX_HISTORY_ITEMS = 20; 
+const MAX_HISTORY_ITEMS = 100; 
 
 // Variables globales
 let API_KEY = '';
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     renderHistory();
     setupTheme();
-    
+    hideSections("default");
     // Renderizar los iconos de Lucide
     lucide.createIcons();
 });
@@ -27,21 +27,24 @@ document.addEventListener('DOMContentLoaded', () => {
 function hideSections(id) {
 
     switch (id) {
+        case 'top':
+            document.getElementById('toogle').style.display = 'flex';
+            document.getElementById('search-bar').style.display = 'flex';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('history-section').style.display = 'block';
+            document.getElementById('config-container').style.display = 'none';
+            console.log('Navegando a Inicio');
+            break;
         case 'search-bar':
-            document.getElementById('search-bar').style.display = 'block';
+            document.getElementById('toogle').style.display = 'none';
+            document.getElementById('search-bar').style.display = 'flex';
             document.getElementById('results').style.display = 'block';
             document.getElementById('history-section').style.display = 'none';
             document.getElementById('config-container').style.display = 'none';
             console.log('Navegando a Búsqueda');
             break;
-        case 'top':
-            document.getElementById('search-bar').style.display = 'block';
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('history-section').style.display = 'block';
-            document.getElementById('config-container').style.display = 'block';
-            console.log('Navegando a Inicio');
-            break;
         case 'config-container':
+            document.getElementById('toogle').style.display = 'none';
             document.getElementById('search-bar').style.display = 'none';
             document.getElementById('results').style.display = 'none';
             document.getElementById('history-section').style.display = 'none';
@@ -49,11 +52,20 @@ function hideSections(id) {
             console.log('Navegando a Configuración');
             break;
         case 'history-section':
+            document.getElementById('toogle').style.display = 'none';
             document.getElementById('search-bar').style.display = 'none';
             document.getElementById('results').style.display = 'none';
             document.getElementById('history-section').style.display = 'block';
             document.getElementById('config-container').style.display = 'none';
             console.log('Navegando a Historial');
+            break;
+        default:
+            document.getElementById('toogle').style.display = 'flex';
+            document.getElementById('search-bar').style.display = 'flex';
+            document.getElementById('results').style.display = 'flex';
+            document.getElementById('history-section').style.display = 'block';
+            document.getElementById('config-container').style.display = 'none';
+            console.log(id);
             break;
     };
     // let element;
@@ -243,6 +255,7 @@ function showResultMessage(message, type = 'info') {
 }
 
 async function searchVideos() {
+    hideSections('search-bar')
     const resultsDiv = document.getElementById('results');
     
     if (!API_KEY) {
@@ -264,7 +277,7 @@ async function searchVideos() {
         q: query,
         key: API_KEY,
         type: 'video', 
-        maxResults: 20,
+        maxResults: 30,
         videoEmbeddable: 'true' 
     });
 
