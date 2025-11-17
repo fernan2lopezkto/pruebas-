@@ -3,106 +3,84 @@ const LS_API_KEY = 'youtube_api_key';
 const LS_KEYWORDS = 'filter_keywords';
 const LS_HISTORY = 'video_history';
 const LS_THEME = 'youtube_filter_theme'; 
-const MAX_HISTORY_ITEMS = 50; 
+const MAX_HISTORY_ITEMS = 20; 
 
 // Variables globales
 let API_KEY = '';
 const BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
-
-// Tip de Performance: Cachear elementos del DOM
-// Guardamos las secciones principales en variables para no buscarlas todo el tiempo.
-let configSection, searchBar, historySection, resultsSection;
 
 // =================================================================
 // 0. INICIALIZACIÓN Y CONFIGURACIÓN
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Cachear secciones principales
-    configSection = document.getElementById('config-container');
-    searchBar = document.getElementById('search-bar');
-    historySection = document.getElementById('history-section');
-    resultsSection = document.getElementById('results');
-
-    // Cargar configuraciones
     loadConfig();
     renderHistory();
     setupTheme();
-
+    
     // Renderizar los iconos de Lucide
     lucide.createIcons();
-    
-    // Estado inicial: Mostrar 'home' (Buscador + Historial)
-    showSection('home');
 });
 
 
-// =================================================================
-// 1. NAVEGACIÓN POR PESTAÑAS
-// =================================================================
+// Función para navegar entre secciones (usada por el btm-nav)
+function hideSections(id) {
 
-function showSection(sectionName) {
-    // 1. Ocultar todas las secciones (usando las variables cacheadas)
-    configSection.classList.add('hidden');
-    searchBar.classList.add('hidden');
-    historySection.classList.add('hidden');
-    resultsSection.classList.add('hidden');
-
-    // 2. Mostrar las secciones deseadas
-    switch (sectionName) {
-        case 'home':
-            // "Inicio": Muestra Buscador + Historial
-            searchBar.classList.remove('hidden');
-            historySection.classList.remove('hidden');
+    switch (id) {
+        case 'search-bar':
+            document.getElementById('search-bar').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('history-section').style.display = 'none';
+            document.getElementById('config-container').style.display = 'none';
+            console.log('Navegando a Búsqueda');
             break;
-        case 'search':
-            // "Buscar": Muestra Buscador + Resultados
-            searchBar.classList.remove('hidden');
-            resultsSection.classList.remove('hidden');
+        case 'top':
+            document.getElementById('search-bar').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('history-section').style.display = 'block';
+            document.getElementById('config-container').style.display = 'block';
+            console.log('Navegando a Inicio');
             break;
-        case 'history':
-            // "Historial": Muestra solo Historial
-            historySection.classList.remove('hidden');
+        case 'config-container':
+            document.getElementById('search-bar').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('history-section').style.display = 'none';
+            document.getElementById('config-container').style.display = 'block';
+            console.log('Navegando a Configuración');
             break;
-        case 'config':
-            // "Configuración": Muestra solo Config
-            configSection.classList.remove('hidden');
+        case 'history-section':
+            document.getElementById('search-bar').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('history-section').style.display = 'block';
+            document.getElementById('config-container').style.display = 'none';
+            console.log('Navegando a Historial');
             break;
-    }
-
-    // 3. Actualizar estado activo de los botones de navegación
-    updateActiveNav(sectionName);
-}
-
-// ---- ¡CORRECCIÓN AQUÍ! ----
-// Esta función ahora busca los botones por ID cada vez,
-// lo que es más robusto que el cacheo anterior.
-function updateActiveNav(activeSection) {
-    const navIds = ['home', 'search', 'history', 'config'];
+    };
+    // let element;
     
-    // Resetear todos los botones de nav (desktop) - DaisyUI usa 'btn-active'
-    navIds.forEach(id => {
-        const btn = document.getElementById(`nav-${id}`);
-        if (btn) btn.classList.remove('btn-active');
-    });
-    
-    // Resetear todos los botones de btm-nav (mobile) - DaisyUI usa 'active'
-    navIds.forEach(id => {
-        const btn = document.getElementById(`btm-nav-${id}`);
-        if (btn) btn.classList.remove('active');
-    });
+    // if (id === 'top') {
+    //     window.scrollTo({ top: 0, behavior: 'smooth' });
+    //     return;
+    // }
 
-    // Activar los botones correspondientes
-    const activeNavBtn = document.getElementById(`nav-${activeSection}`);
-    if (activeNavBtn) activeNavBtn.classList.add('btn-active');
-    
-    const activeBtmNavBtn = document.getElementById(`btm-nav-${activeSection}`);
-    if (activeBtmNavBtn) activeBtmNavBtn.classList.add('active');
+    // element = document.getElementById(id);
+
+    // if (element) {
+    //     // Obtenemos la posición del elemento. Restamos para compensar el navbar fijo en escritorio.
+    //     const headerOffset = 64; 
+    //     const elementPosition = element.getBoundingClientRect().top;
+    //     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+    //     window.scrollTo({
+    //         top: offsetPosition,
+    //         behavior: 'smooth'
+    //     });
+    // }
 }
 
 
 // =================================================================
-// 2. GESTIÓN DE LA API KEY Y CONFIGURACIÓN (Sin cambios)
+// 1. GESTIÓN DE LA API KEY Y CONFIGURACIÓN
 // =================================================================
 
 function loadConfig() {
@@ -145,7 +123,7 @@ function saveKeywords() {
 }
 
 // =================================================================
-// 3. FILTRADO DE CONTENIDO (Sin cambios)
+// 2. FILTRADO DE CONTENIDO
 // =================================================================
 
 function getFilterKeywords() {
@@ -156,7 +134,7 @@ function getFilterKeywords() {
 function filterVideo(snippet) {
     const keywords = getFilterKeywords();
     if (keywords.length === 0) return false; 
-
+    
     const title = (snippet.title || '').toLowerCase();
     const description = (snippet.description || '').toLowerCase();
 
@@ -169,7 +147,7 @@ function filterVideo(snippet) {
 }
 
 // =================================================================
-// 4. GESTIÓN DEL HISTORIAL (Sin cambios)
+// 3. GESTIÓN DEL HISTORIAL
 // =================================================================
 
 function addToHistory(video) {
@@ -211,18 +189,19 @@ function renderHistory() {
 
 
 // =================================================================
-// 5. BÚSQUEDA Y RENDERIZADO (Sin cambios)
+// 4. BÚSQUEDA Y RENDERIZADO (CON LA SOLUCIÓN DEL OVERLAY)
 // =================================================================
 
 function createVideoElement(video, type = 'result') {
     const videoElement = document.createElement('div');
     videoElement.className = `card card-compact bg-base-100 shadow-md ${type}`;
-
+    
     const videoId = video.id.videoId;
     const videoTitle = video.snippet.title;
-
+    
+    // URL simplificada para evitar errores de incrustación
     const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1`;
-
+    
     videoElement.innerHTML = `
         <div class="video-player-wrapper">
             <iframe class="video-player"
@@ -243,7 +222,7 @@ function createVideoElement(video, type = 'result') {
     `;
 
     const overlay = videoElement.querySelector('.video-overlay');
-
+    
     overlay.addEventListener('click', () => {
         if (type === 'result') {
             addToHistory(video);
@@ -255,35 +234,37 @@ function createVideoElement(video, type = 'result') {
 }
 
 function showResultMessage(message, type = 'info') {
-    // Usamos la variable global cacheada
-    resultsSection.innerHTML = `<div class="alert ${alertType} shadow-sm"><span>${message}</span></div>`;
+    const resultsDiv = document.getElementById('results');
+    let alertType = 'alert-info';
+    if (type === 'error') alertType = 'alert-error';
+    if (type === 'warning') alertType = 'alert-warning';
+
+    resultsDiv.innerHTML = `<div class="alert ${alertType} shadow-sm"><span>${message}</span></div>`;
 }
 
 async function searchVideos() {
-    // Usamos la variable global cacheada
+    const resultsDiv = document.getElementById('results');
+    
     if (!API_KEY) {
         showResultMessage('❌ La Clave de API no está configurada. Por favor, guárdala en Configuración.', 'error');
         document.getElementById('config-toggle-cb').checked = true;
-        showSection('config'); // Llevar al usuario a la config
         return;
     }
-
+    
     const query = document.getElementById('query').value;
     if (!query) {
         showResultMessage('Por favor, escribe una consulta.', 'warning');
         return;
     }
 
-    resultsSection.innerHTML = `<div class="skeleton w-full h-32"></div>`; 
-    // Asegurarse de que los resultados sean visibles
-    showSection('search');
+    resultsDiv.innerHTML = `<div class="skeleton w-full h-32"></div>`; 
 
     const params = new URLSearchParams({
         part: 'snippet',
         q: query,
         key: API_KEY,
         type: 'video', 
-        maxResults: 50,
+        maxResults: 20,
         videoEmbeddable: 'true' 
     });
 
@@ -311,8 +292,8 @@ async function searchVideos() {
 }
 
 function renderSearchResults(videos) {
-    // Usamos la variable global cacheada
-    resultsSection.innerHTML = ''; 
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = ''; 
     let filteredCount = 0;
     let renderedCount = 0;
 
@@ -323,17 +304,17 @@ function renderSearchResults(videos) {
             filteredCount++;
             return; 
         }
-
-        resultsSection.appendChild(createVideoElement(video, 'result'));
+        
+        resultsDiv.appendChild(createVideoElement(video, 'result'));
         renderedCount++;
     });
-
+    
     if (renderedCount === 0 && filteredCount > 0) {
         showResultMessage(`Se filtraron ${filteredCount} videos de los resultados. Intenta otra búsqueda.`, 'warning');
     } else if (renderedCount === 0 && filteredCount === 0) {
         showResultMessage('No se encontraron videos que coincidieran con la búsqueda.', 'info');
     } else if (filteredCount > 0) {
-        resultsSection.insertAdjacentHTML('afterbegin', `
+        resultsDiv.insertAdjacentHTML('afterbegin', `
             <div class="alert alert-success shadow-sm mb-4">
                 <span>ℹ️ Se han filtrado ${filteredCount} videos por tus palabras clave.</span>
             </div>
@@ -343,7 +324,7 @@ function renderSearchResults(videos) {
 
 
 // =================================================================
-// 6. GESTIÓN DEL TEMA (MODO OSCURO) (Sin cambios)
+// 5. GESTIÓN DEL TEMA (MODO OSCURO)
 // =================================================================
 
 function setupTheme() {
@@ -351,7 +332,7 @@ function setupTheme() {
     const htmlElement = document.documentElement; 
 
     const savedTheme = localStorage.getItem(LS_THEME);
-
+    
     if (savedTheme) {
         htmlElement.setAttribute('data-theme', savedTheme);
         themeToggle.checked = (savedTheme === 'night');
